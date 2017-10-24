@@ -6,6 +6,7 @@ var Handler = function(app) {
   this.app = app;
 	this.channelServer = app.get("channelService");
 	this.Player = {};
+	this.RoomPlayer = {};
 };
 
 /**
@@ -55,7 +56,7 @@ Handler.prototype.addRoom = function (msg, session, next) {
 		return;
 	}
 	var channel = this.channelServer.getChannel(roomId, false);
-	if (!! channel) {
+	if (!! channel) {//该房间存在
 		var Uid = channel.getMember(uid);
 		if (!! Uid) {
 			next(null, {error : "玩家已在该房间"});
@@ -65,26 +66,59 @@ Handler.prototype.addRoom = function (msg, session, next) {
 		channel.add(uid, sid);
 		console.log(channel.groups);
 		var group = channel.groups[sid];
+		if (group.length == 3) {
+			next(null, {error : "该房间人满"});
+			return;
+		}
 		var uids = [];
-		for (var i = 0; i < group.length; i ++) {
+		for (var i = 0; i < group.length; i ++) {//消息推送给的对象
 			uids.push({uid : group[i], sid : sid});
 		}
-		next(null, {room : roomId, uid : uid});
-		this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId}, uids, null, function (rs) {
+        var roomMsg = self.RoomPlayer[roomId];
+		var RoomMain = 0;//房主uid
+		for (var i in roomMsg){
+			if (roomMsg[i].main == roomMsg[i].uid) {
+                RoomMain = roomMsg[i].uid;
+                break;
+			}
+		}
+        next(null, {room : roomId, uid : uid, main : RoomMain});
+
+		this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : RoomMain}, uids, null, function (rs) {
 			if (!! rs) {
 				console.log("推送失败", rs);
-			} else {
-				console.log("push ok!");
 			}
         });
-		var data = [{
+        roomMsg[uid] = {
+        	uid : self.Player[uid].uid,
+			name : self.Player[uid].name,
+			roomId : roomId,
+		}
 
-		}];
-		this.channelServer.pushMessageByUids("onJoinRoom", data, uids, null, function (rs) {
+		var data = [];
+		for (var i in roomMsg) {
+			var msg = roomMsg[i];
+			var d = {
+				uid : msg.uid,
+				name : msg.name,
+				roomId : roomId,
+			};
+			if (! msg.hasOwnProperty("up")) {
+                d['up'] = {
+                    uid : self.Player[uid].uid,
+                    name : self.Player[uid].name,
+                }
+			} else {
+                d['down'] = {
+                    uid : self.Player[uid].uid,
+                    name : self.Player[uid].name,
+                }
+			}
+			data.push(d);
+		}
+		this.channelServer.pushMessageByUids("onRoomMsg", data, uids, null, function (rs) {
             if (!! rs) {
                 console.log("推送失败", rs);
-            } else {
-                console.log("push ok!");
             }
         });
         return;
@@ -109,15 +143,19 @@ Handler.prototype.createRoom = function (msg, session, next) {
     	uid : self.Player[uid].uid,
 		name : self.Player[uid].name,
 		roomId : roomId,
+		main : uid
 	};
     next(null, {room : roomId});
-    this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId}, uids, null, function (rs) {});
+    var uids = [{uid : uid, sid : sid}];
+    this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : uid}, uids, null, function (rs) {});
     var data = [{
-    	uid : uid,
-		roomId : roomId,
-		main : true
+    	uid : self.RoomPlayer[roomId][uid].uid,
+		roomId : self.RoomPlayer[roomId][uid].roomId,
+		main : self.RoomPlayer[roomId][uid].main,
+		up : null,
+		down : null
 	}];
-    this.channelServer.pushMessageByUids("RoomMsg", data, [{uid : uid, sid : sid}], null, function (rs) {});
+    this.channelServer.pushMessageByUids("onRoomMsg", data, uids, null, function (rs) {});
 };
 
 //随机生成房间号
@@ -134,6 +172,26 @@ Handler.prototype.randomRoomId = function () {
     	return;
 	}
     return s;
+}
+
+Handler.prototype.leaveRoom = function (msg, session, next) {
+	var uid = msg.uid;
+	for (var i in this.RoomPlayer) {
+        if (this.RoomPlayer[i].hasOwnProperty(uid)) {
+        	var player = this.RoomPlayer[i];
+        	var roomId = i;
+        	delete player.uid;
+        	break;
+		}
+	}
+    var channel = this.channelServer.getChannel(roomId, false);
+    if (!! channel) {
+        var sid = "connector-server-1";
+        channel.leave(uid, sid);
+        next(null, {msg : "离开房间"});
+        return;
+	}
+	next(null, {error : 500});
 }
 
 /**

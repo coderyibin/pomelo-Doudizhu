@@ -83,6 +83,7 @@ cc.Class({
                             self._userId = m.uid;
                             self.loginNode.active = false;
                             self.MenuNode.active = true;
+                            cc.g_Global.HeroMsg.uid = m.uid;
                         });
                     });
                 });
@@ -106,8 +107,7 @@ cc.Class({
         let self = this;
         let roomId = self.Room.string;
         pomelo.request(gameDefine.gameDefine.NET_ROUTE.ROUTE_ADD_ROOM, {uid : self._userId, room : roomId}, (msg)=>{
-            console.log("加入房间号是roomId" , msg);
-
+            console.log("加入房间号是roomId" , msg.room);
         });
     },
 
@@ -115,7 +115,7 @@ cc.Class({
         let self = this;
         let roomId = self.Room.string;
         pomelo.request(gameDefine.gameDefine.NET_ROUTE.ROUTE_CREAT_EROOM, {uid : self._userId}, (msg)=>{
-            console.log("创建成功，房间号是roomId" + msg.room);
+            console.log("创建成功，房间号是roomId" , msg.room);
         })
     },
 

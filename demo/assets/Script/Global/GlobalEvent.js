@@ -19,7 +19,6 @@ var EmitterEvent = cc.Class({
     },
 
     emit : function (event, detail) {
-        console.log(detail);
         let self = this;
         for (let i = 0 ; i < self._eventArr.length; i ++) {
             let _event = self._eventArr[i];

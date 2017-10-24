@@ -1,3 +1,4 @@
+var gameDefine = require("GameDefine");
 cc.Class({
     extends: cc.Component,
 
@@ -22,11 +23,14 @@ cc.Class({
 
     // use this for initialization
     onLoad: function () {
-
+        let self = this;
+        self.roomId.string = cc.g_Global.RoomMsg.roomId;
     },
 
-    HelloWorldCallBack : function (msg) {
-        let self = this;
-        console.log(msg);
+    leaveRoom : function () {
+        let uid = cc.g_Global.HeroMsg.uid;
+        pomelo.request(gameDefine.gameDefine.NET_ROUTE.ROUTE_LEAVE_ROOM, {uid : uid}, (msg)=>{
+            console.log("离开房间", msg);
+        });
     }
 });
