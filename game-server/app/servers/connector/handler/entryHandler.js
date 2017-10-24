@@ -50,7 +50,6 @@ Handler.prototype.addRoom = function (msg, session, next) {
 	var self = this;
 	var roomId = msg.room;
 	var uid = msg.uid;
-	console.log(roomId);
 	if (! roomId) {
 		next(null, {error : "数据格式有误!"});
 		return;
@@ -66,11 +65,11 @@ Handler.prototype.addRoom = function (msg, session, next) {
 		channel.add(uid, sid);
 		console.log(channel.groups);
 		var group = channel.groups[sid];
-		if (group.length == 3) {
+		if (group.length == 4) {
 			next(null, {error : "该房间人满"});
 			return;
 		}
-		var uids = [];
+        var uids = [];
 		for (var i = 0; i < group.length; i ++) {//消息推送给的对象
 			uids.push({uid : group[i], sid : sid});
 		}
@@ -83,44 +82,31 @@ Handler.prototype.addRoom = function (msg, session, next) {
 			}
 		}
         next(null, {room : roomId, uid : uid, main : RoomMain});
-
-		this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : RoomMain}, uids, null, function (rs) {
-			if (!! rs) {
-				console.log("推送失败", rs);
-			}
-        });
+		//推送客户端进入房间
+		this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : RoomMain}, [{uid : uid, sid : sid}], null, function (rs) {});
+		//布局房主的上下家
+		var MainMsg = roomMsg[RoomMain];
+        if (! MainMsg.hasOwnProperty("up")) {
+            MainMsg["up"] = uid;
+        } else {
+            MainMsg["down"] = uid;
+        }
+		//房间数据在加一个用户
         roomMsg[uid] = {
         	uid : self.Player[uid].uid,
 			name : self.Player[uid].name,
 			roomId : roomId,
 		}
-
-		var data = [];
-		for (var i in roomMsg) {
-			var msg = roomMsg[i];
-			var d = {
-				uid : msg.uid,
-				name : msg.name,
-				roomId : roomId,
-			};
-			if (! msg.hasOwnProperty("up")) {
-                d['up'] = {
-                    uid : self.Player[uid].uid,
-                    name : self.Player[uid].name,
-                }
-			} else {
-                d['down'] = {
-                    uid : self.Player[uid].uid,
-                    name : self.Player[uid].name,
-                }
-			}
-			data.push(d);
+		if (group.length == 2) {//上家进入
+        	roomMsg[uid]["up"] = null;
+        	roomMsg[uid]["down"] = RoomMain;
+		} else {//下家进入
+            roomMsg[uid]["up"] = MainMsg.uid;
+            roomMsg[uid]["down"] = MainMsg["up"];
+            roomMsg[MainMsg.up]["up"] = uid;
 		}
-		this.channelServer.pushMessageByUids("onRoomMsg", data, uids, null, function (rs) {
-            if (!! rs) {
-                console.log("推送失败", rs);
-            }
-        });
+		//推送房间数据
+		this.channelServer.pushMessageByUids("onRoomMsg", roomMsg, uids, null, function (rs) {});
         return;
 	}
 	next(null, {error : "该房间号不存在！"});
