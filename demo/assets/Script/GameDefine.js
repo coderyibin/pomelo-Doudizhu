@@ -1,4 +1,5 @@
 var GameDefine = {
+    //网络路由
     NET_ROUTE : {
         ROUTE_INIT: "gate.gateHandler.entry",
         ROUTE_LOGIN: "connector.entryHandler.login",
@@ -7,16 +8,25 @@ var GameDefine = {
         ROUTE_LEAVE_ROOM: "connector.entryHandler.leaveRoom",
     },
 
+    //网络监听器key
     ON_LISTENER : {
         ROOM_MSG : "onRoomMsg",
         IN_ROOM : "onJoinRoom",
+    },
+
+    //游戏监听器
+    ON_GAME : {
+        UP_DATE_ROOM_MSG : "onUpdateRoomMsg",
+    },
+
+    //克隆json数据
+    CloneJSON : function (json) {
+        return JSON.parse(JSON.stringify(json));
     },
 
     load : function(){
 
     }
 };
-GameDefine.load();
-
 
 module.exports.gameDefine = GameDefine;

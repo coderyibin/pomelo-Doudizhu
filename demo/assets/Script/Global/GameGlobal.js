@@ -5,6 +5,7 @@ var GameGlobal = cc.Class({
         self.RoomMsg = {
             roomId : "",
             main : "",
+            players : null,
         };
         self.HeroMsg = {
             uid : 0,

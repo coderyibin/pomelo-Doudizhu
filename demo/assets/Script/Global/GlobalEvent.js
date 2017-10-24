@@ -5,7 +5,14 @@ var EmitterEvent = cc.Class({
         self._eventArr = [];
     },
 
-    on : function (event, node, cb, ctx, time) {
+    /**
+     * 注册监听器
+     * @param 监听器名称
+     * @param 监听器所绑定节点
+     * @param 回调函数
+     * @param 上下文
+     * @param 监听器可执行次数 =1则是一次性监听器*/
+    on : function (event, node, cb, ctx, time=2) {
         let self = this;
         self._eventArr.push({
             name : event,
@@ -17,7 +24,6 @@ var EmitterEvent = cc.Class({
         node.on(event, cb, ctx);
         // cc.systemEvent.on(event, cb, ctx);
     },
-
 
     emit : function (event, detail) {
         let self = this;
