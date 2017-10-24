@@ -18,6 +18,7 @@ var EmitterEvent = cc.Class({
         // cc.systemEvent.on(event, cb, ctx);
     },
 
+
     emit : function (event, detail) {
         let self = this;
         for (let i = 0 ; i < self._eventArr.length; i ++) {
