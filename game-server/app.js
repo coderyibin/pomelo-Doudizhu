@@ -26,6 +26,16 @@ app.configure('production|development', 'gate', function(){
       useProtobuf : true
     });
 });
+// app configuration
+app.configure('production|development', 'fight', function(){
+  app.set('connectorConfig',
+    {
+      connector : pomelo.connectors.hybridconnector,
+      heartbeat : 3,
+      useDict : true,
+      useProtobuf : true
+    });
+});
 
 // start app
 app.start();
