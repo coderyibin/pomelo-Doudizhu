@@ -61,7 +61,13 @@ Handler.prototype.addRoom = function (msg, session, next) {
 			next(null, {error : "玩家已在该房间"});
 			return;
 		}
-        var sid = "connector-server-1";
+        session.set("roomId", roomId);
+        session.push("roomId", function (err) {
+            if (err) {
+                console.error('set rid for session service failed! error is : %j', err.stack);
+            }
+        });
+        var sid = self.app.getServerId();
 		channel.add(uid, sid);
 		console.log(channel.groups);
 		var group = channel.groups[sid];
@@ -83,7 +89,7 @@ Handler.prototype.addRoom = function (msg, session, next) {
 		}
         next(null, {room : roomId, uid : uid, main : RoomMain});
 		//推送客户端进入房间
-		this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : RoomMain}, [{uid : uid, sid : sid}], null, function (rs) {});
+		this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : RoomMain, uid : uid}, [{uid : uid, sid : sid}], null, function (rs) {});
 		//布局房主的上下家
 		var MainMsg = roomMsg[RoomMain];
         if (! MainMsg.hasOwnProperty("up")) {
@@ -118,13 +124,19 @@ Handler.prototype.createRoom = function (msg, session, next) {
 	var uid = msg.uid;
     var roomId = self.randomRoomId();
 	var channel = this.channelServer.createChannel(roomId);
-    var sid = "connector-server-1";
+    var sid = self.app.getServerId();
     channel.add(msg.uid, sid);
     self.RoomPlayer[roomId] = {};
     if (self.RoomPlayer[roomId].hasOwnProperty(msg.uid)) {
     	next(null, {error : "该玩家已创建房间！"});
     	return;
 	}
+	session.set("roomId", roomId);
+    session.push("roomId", function (err) {
+		if (err) {
+            console.error('set rid for session service failed! error is : %j', err.stack);
+		}
+    });
 	self.RoomPlayer[roomId][msg.uid] = {
     	uid : self.Player[uid].uid,
 		name : self.Player[uid].name,
@@ -133,7 +145,7 @@ Handler.prototype.createRoom = function (msg, session, next) {
 	};
     next(null, {room : roomId});
     var uids = [{uid : uid, sid : sid}];
-    this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : uid}, uids, null, function (rs) {});
+    this.channelServer.pushMessageByUids("onJoinRoom", {roomId : roomId, main : uid, uid : uid}, uids, null, function (rs) {});
     var data = [{
     	uid : self.RoomPlayer[roomId][uid].uid,
 		roomId : self.RoomPlayer[roomId][uid].roomId,
@@ -172,7 +184,7 @@ Handler.prototype.leaveRoom = function (msg, session, next) {
 	}
     var channel = this.channelServer.getChannel(roomId, false);
     if (!! channel) {
-        var sid = "connector-server-1";
+        var sid = this.app.getServerId();
         channel.leave(uid, sid);
         next(null, {msg : "离开房间"});
         return;

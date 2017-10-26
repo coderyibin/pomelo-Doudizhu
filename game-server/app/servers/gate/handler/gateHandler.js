@@ -17,7 +17,7 @@ var Handler = function(app) {
 Handler.prototype.entry = function(msg, session, next) {
   next(null, {
 	  code: 200,
-	  host : "127.0.0.1",
+	  host : this.app.getCurServer().host,
 	  port : "3010"
   });
 };

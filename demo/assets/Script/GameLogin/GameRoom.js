@@ -20,6 +20,10 @@ cc.Class({
             default : null,
             type : cc.Label
         },
+        startGameBtn : {
+            default : null,
+            type : cc.Node
+        },
         _mainUid : "",
     },
 
@@ -41,6 +45,12 @@ cc.Class({
         self.Main.string = cc.g_Global.RoomMsg.main;
         self._mainUid = cc.g_Global.RoomMsg.main;
         emitter.emitterEvent.on(gameDefine.gameDefine.ON_GAME.UP_DATE_ROOM_MSG, self.node, self.updateRoomMsg, self);
+        let myUid = cc.g_Global.HeroMsg.uid;
+        if (myUid == self._mainUid) {
+            self.startGameBtn.active = true;
+        } else {
+            self.startGameBtn.active = false;
+        }
     },
 
     updateRoomMsg : function (msg) {
@@ -56,7 +66,8 @@ cc.Class({
     },
 
     startGame : function () {
-
+        let self = this;
+        pomelo.request(gameDefine.gameDefine.NET_ROUTE.ROUTE_START_FIGHT, {roomId : cc.g_Global.RoomMsg.roomId}, (msg)=>{cc.log(msg)});
     },
 
     leaveRoom : function () {

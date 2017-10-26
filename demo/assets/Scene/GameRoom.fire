@@ -1294,6 +1294,9 @@
     "DownPlayer": {
       "__id__": 30
     },
+    "startGameBtn": {
+      "__id__": 12
+    },
     "_mainUid": ""
   }
 ]

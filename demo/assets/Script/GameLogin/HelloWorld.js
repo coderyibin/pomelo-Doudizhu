@@ -39,7 +39,7 @@ cc.Class({
 
         // defaults, set visually when attaching this script to the Canvas
         text: 'Hello, World!',
-        host: "127.0.0.1",
+        host: "192.168.0.134",
         port : "10086",
         _userId : "",
     },

@@ -6,12 +6,14 @@ var GameDefine = {
         ROUTE_CREAT_EROOM: "connector.entryHandler.createRoom",
         ROUTE_ADD_ROOM: "connector.entryHandler.addRoom",
         ROUTE_LEAVE_ROOM: "connector.entryHandler.leaveRoom",
+        ROUTE_START_FIGHT: "fight.fightHandler.startFight",
     },
 
     //网络监听器key
     ON_LISTENER : {
         ROOM_MSG : "onRoomMsg",
         IN_ROOM : "onJoinRoom",
+        IN_FIGHT : "onJoinFight",
     },
 
     //游戏监听器
